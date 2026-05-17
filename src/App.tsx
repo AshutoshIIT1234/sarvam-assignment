@@ -31,14 +31,17 @@ function App() {
             className="flex gap-1 p-1 rounded-xl w-fit"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
             role="tablist"
+            aria-label="App sections"
           >
             {(['playground', 'diff'] as AppMode[]).map((tab) => (
               <button
                 key={tab}
+                id={`tab-${tab}`}
                 role="tab"
                 aria-selected={mode === tab}
+                aria-controls={`panel-${tab}`}
                 onClick={() => setMode(tab)}
-                className="px-5 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-transparent"
+                className="px-5 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-[var(--bg-card)]"
                 style={
                   mode === tab
                     ? {
@@ -57,7 +60,15 @@ function App() {
           </nav>
         </header>
 
-        {mode === 'playground' ? <Playground /> : <DiffView />}
+        {mode === 'playground' ? (
+          <div id="panel-playground" role="tabpanel" aria-labelledby="tab-playground">
+            <Playground />
+          </div>
+        ) : (
+          <div id="panel-diff" role="tabpanel" aria-labelledby="tab-diff">
+            <DiffView />
+          </div>
+        )}
       </div>
     </div>
   )

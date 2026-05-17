@@ -12,26 +12,10 @@ import { useState, useRef, useCallback } from 'react'
 import type { StreamError, ChatMessage } from '../types'
 import { HttpError } from '../lib/errors'
 import { streamChat } from '../api/chat'
+import { stripThinkBlocks } from '../utils/stripThinkBlocks'
 
 // 30 seconds is generous for on-device inference but prevents hanging forever
 const TIMEOUT_MS = 30_000
-
-/**
- * The Sarvam model sometimes wraps its reasoning in <think>...</think> blocks
- * before giving the actual answer. I strip these so users only see the response.
- *
- * Three cases to handle:
- * 1. Complete block — <think>...</think> arrived fully
- * 2. Missing opening tag — model started streaming mid-think
- * 3. In-progress block — <think> arrived but </think> hasn't yet
- */
-function stripThinkBlocks(text: string): string {
-  return text
-    .replace(/<think>[\s\S]*?<\/think>\n?/gi, '') // complete block
-    .replace(/^[\s\S]*?<\/think>\n?/, '') // block missing opening tag
-    .replace(/<think>[\s\S]*$/i, '') // in-progress block
-    .trimStart()
-}
 
 /**
  * Maps any thrown error into a typed StreamError for the UI.

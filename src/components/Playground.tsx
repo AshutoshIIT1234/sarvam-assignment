@@ -54,7 +54,8 @@ export function Playground() {
               <MetricsBar tokenCount={tokenCount} tokensPerSec={tokensPerSec} />
               <button
                 onClick={abort}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-red-500"
+                aria-keyshortcuts="Escape"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-[var(--bg)]"
                 style={{ border: '1px solid rgba(239,68,68,0.4)', color: '#f87171' }}
               >
                 Stop (Esc)

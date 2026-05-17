@@ -6,16 +6,24 @@
   --bg-input: #16161f;
   --border: #2a2a3a;
   --border-focus: #7c3aed;
-  --text: #a0a0b8;
+  --text: #b8b8d0;
   --text-h: #f0f0ff;
   --accent: #8b5cf6;
-  --accent-2: #a78bfa;
+  --accent-2: #c4b5fd;
   --accent-glow: rgba(139, 92, 246, 0.25);
   font-family: 'Inter', system-ui, 'Segoe UI', sans-serif;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
+
+/* Ensure focus ring offset is visible on dark backgrounds */
+*:focus-visible {
+  outline-offset: 2px;
+}
+.focus\:ring-offset-2:focus {
+  --tw-ring-offset-color: var(--bg);
+}
 
 body {
   margin: 0;

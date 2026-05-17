@@ -161,10 +161,14 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
         ref={canvasRef}
         width={800}
         height={144}
+        role="img"
+        aria-label={isRecording ? 'Live audio waveform' : 'Audio waveform (idle)'}
         className="w-full rounded-xl"
         style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', height: '72px' }}
-        aria-label="Audio waveform visualization"
       />
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {isProcessing ? 'Processing audio…' : isRecording ? 'Recording in progress' : ''}
+      </div>
 
       <div className="flex items-center justify-center">
         <button

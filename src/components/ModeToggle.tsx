@@ -32,7 +32,8 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
                 }
           }
         >
-          {m === 'text' ? '⌨ Text' : '🎙 Audio'}
+          <span aria-hidden="true">{m === 'text' ? '⌨' : '🎙'}</span>
+          {' '}{m === 'text' ? 'Text' : 'Audio'}
         </button>
       ))}
     </div>
