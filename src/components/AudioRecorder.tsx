@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { transcribeAudio } from '../api/transcribe'
 
 interface AudioRecorderProps {
@@ -17,31 +17,30 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
   const animationFrameRef = useRef<number | null>(null)
   const chunksRef = useRef<BlobPart[]>([])
 
-  const drawWaveform = useCallback(() => {
+  // Use a ref for the rAF loop to avoid stale closure / self-reference lint error
+  const drawWaveformRef = useRef<() => void>(() => undefined)
+
+  const drawWaveform = () => {
     if (!canvasRef.current || !analyserRef.current) return
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // Sync canvas pixel size to CSS size for crisp rendering
     const dpr = window.devicePixelRatio || 1
     const rect = canvas.getBoundingClientRect()
-    if (canvas.width !== rect.width * dpr) {
-      canvas.width = rect.width * dpr
-      canvas.height = rect.height * dpr
+    if (canvas.width !== Math.round(rect.width * dpr)) {
+      canvas.width = Math.round(rect.width * dpr)
+      canvas.height = Math.round(rect.height * dpr)
       ctx.scale(dpr, dpr)
     }
     const W = rect.width
     const H = rect.height
 
-    const analyser = analyserRef.current
-    const dataArray = new Uint8Array(analyser.frequencyBinCount)
-    analyser.getByteTimeDomainData(dataArray)
+    const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
+    analyserRef.current.getByteTimeDomainData(dataArray)
 
     ctx.fillStyle = '#16161f'
     ctx.fillRect(0, 0, W, H)
-
-    // Glow effect
     ctx.shadowColor = '#8b5cf6'
     ctx.shadowBlur = 6
     ctx.lineWidth = 2
@@ -51,17 +50,22 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
     const sliceWidth = W / dataArray.length
     let x = 0
     for (let i = 0; i < dataArray.length; i++) {
-      const v = dataArray[i] / 128.0
-      const y = (v * H) / 2
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+      const y = ((dataArray[i] ?? 128) / 128.0) * (H / 2)
+      if (i === 0) ctx.moveTo(x, y)
+      else ctx.lineTo(x, y)
       x += sliceWidth
     }
     ctx.lineTo(W, H / 2)
     ctx.stroke()
     ctx.shadowBlur = 0
 
-    animationFrameRef.current = requestAnimationFrame(drawWaveform)
-  }, [])
+    animationFrameRef.current = requestAnimationFrame(() => drawWaveformRef.current())
+  }
+
+  // Keep ref in sync so rAF callback always calls the latest version
+  useEffect(() => {
+    drawWaveformRef.current = drawWaveform
+  })
 
   const startRecording = async () => {
     try {
@@ -76,7 +80,9 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' })
       chunksRef.current = []
-      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data)
+      }
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         setIsProcessing(true)
@@ -87,8 +93,8 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
         } finally {
           setIsProcessing(false)
         }
-        stream.getTracks().forEach(t => t.stop())
-        audioContextRef.current?.close()
+        stream.getTracks().forEach((t) => t.stop())
+        void audioContextRef.current?.close()
         audioContextRef.current = null
         analyserRef.current = null
       }
@@ -96,7 +102,7 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
       mediaRecorderRef.current = mediaRecorder
       mediaRecorder.start(100)
       setIsRecording(true)
-      drawWaveform()
+      drawWaveformRef.current()
     } catch {
       onError('Could not access microphone. Please grant permission.')
     }
@@ -110,7 +116,7 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
     }
   }
 
-  // Draw idle state when not recording
+  // Draw idle flat line when not recording
   useEffect(() => {
     if (isRecording || !canvasRef.current) return
     const canvas = canvasRef.current
@@ -118,28 +124,36 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
     if (!ctx) return
     const dpr = window.devicePixelRatio || 1
     const rect = canvas.getBoundingClientRect()
-    canvas.width = rect.width * dpr
-    canvas.height = rect.height * dpr
+    canvas.width = Math.round(rect.width * dpr)
+    canvas.height = Math.round(rect.height * dpr)
     ctx.scale(dpr, dpr)
-    const W = rect.width, H = rect.height
+    const W = rect.width
+    const H = rect.height
     ctx.fillStyle = '#16161f'
     ctx.fillRect(0, 0, W, H)
-    // Subtle horizontal grid
     ctx.strokeStyle = 'rgba(139,92,246,0.1)'
     ctx.lineWidth = 1
     for (let i = 1; i < 4; i++) {
-      ctx.beginPath(); ctx.moveTo(0, (H / 4) * i); ctx.lineTo(W, (H / 4) * i); ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(0, (H / 4) * i)
+      ctx.lineTo(W, (H / 4) * i)
+      ctx.stroke()
     }
-    // Center flat line
     ctx.strokeStyle = 'rgba(139,92,246,0.35)'
     ctx.lineWidth = 1.5
-    ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(0, H / 2)
+    ctx.lineTo(W, H / 2)
+    ctx.stroke()
   }, [isRecording])
 
-  useEffect(() => () => {
-    if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
-    audioContextRef.current?.close()
-  }, [])
+  useEffect(
+    () => () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
+      void audioContextRef.current?.close()
+    },
+    []
+  )
 
   return (
     <div className="flex flex-col gap-4">
@@ -152,30 +166,42 @@ export function AudioRecorder({ onTranscript, onError, disabled }: AudioRecorder
         aria-label="Audio waveform visualization"
       />
 
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex items-center justify-center">
         <button
           onClick={isRecording ? stopRecording : startRecording}
           onKeyDown={(e) => {
             if (e.key === ' ' && !disabled && !isProcessing) {
               e.preventDefault()
-              isRecording ? stopRecording() : startRecording()
+              if (isRecording) stopRecording()
+              else void startRecording()
             }
           }}
           disabled={disabled || isProcessing}
           aria-pressed={isRecording}
           className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
-          style={isRecording
-            ? { background: 'linear-gradient(135deg, #dc2626, #ef4444)', boxShadow: '0 0 16px rgba(239,68,68,0.4)' }
-            : { background: 'linear-gradient(135deg, #7c3aed, #a855f7)', boxShadow: '0 0 16px rgba(139,92,246,0.3)' }
+          style={
+            isRecording
+              ? { background: 'linear-gradient(135deg, #dc2626, #ef4444)', boxShadow: '0 0 16px rgba(239,68,68,0.4)' }
+              : { background: 'linear-gradient(135deg, #7c3aed, #a855f7)', boxShadow: '0 0 16px rgba(139,92,246,0.3)' }
           }
         >
-          <span className={`h-2.5 w-2.5 rounded-full bg-white ${isRecording ? 'animate-pulse' : ''}`} aria-hidden="true" />
+          <span
+            className={`h-2.5 w-2.5 rounded-full bg-white ${isRecording ? 'animate-pulse' : ''}`}
+            aria-hidden="true"
+          />
           {isProcessing ? 'Processing…' : isRecording ? 'Stop Recording' : 'Start Recording'}
         </button>
       </div>
 
       <p className="text-center text-xs" style={{ color: 'var(--text)' }}>
-        Press <kbd className="rounded px-1.5 py-0.5 text-xs font-semibold" style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-h)' }}>Space</kbd> or click to {isRecording ? 'stop' : 'start'} recording
+        Press{' '}
+        <kbd
+          className="rounded px-1.5 py-0.5 text-xs font-semibold"
+          style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-h)' }}
+        >
+          Space
+        </kbd>{' '}
+        or click to {isRecording ? 'stop' : 'start'} recording
       </p>
     </div>
   )

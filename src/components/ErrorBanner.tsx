@@ -21,12 +21,17 @@ export function ErrorBanner({ error, onRetry, onClear }: ErrorBannerProps) {
       className="rounded-xl p-4 flex items-start gap-3"
       style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)' }}
     >
-      <span className="text-red-400 mt-0.5" aria-hidden="true">⚠</span>
+      <span className="text-red-400 mt-0.5" aria-hidden="true">
+        ⚠
+      </span>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-red-400">
-          {ERROR_LABELS[error.type]}{error.statusCode ? ` ${error.statusCode}` : ''}
+          {ERROR_LABELS[error.type]}
+          {error.statusCode ? ` ${error.statusCode}` : ''}
         </p>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--text)' }}>{error.message}</p>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text)' }}>
+          {error.message}
+        </p>
       </div>
       <div className="flex gap-2 shrink-0">
         <button

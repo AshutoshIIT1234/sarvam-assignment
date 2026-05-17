@@ -22,8 +22,12 @@ export function MetricsBar({ tokenCount, tokensPerSec }: MetricsBarProps) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text)' }}>{label}</span>
-      <span className="text-sm font-semibold" style={{ color: 'var(--accent-2, #a78bfa)' }}>{value}</span>
+      <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--text)' }}>
+        {label}
+      </span>
+      <span className="text-sm font-semibold" style={{ color: 'var(--accent-2, #a78bfa)' }}>
+        {value}
+      </span>
     </div>
   )
 }

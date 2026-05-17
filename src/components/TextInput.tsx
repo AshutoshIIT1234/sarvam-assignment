@@ -12,17 +12,25 @@ export function TextInput({ onSubmit, disabled }: TextInputProps) {
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (value.trim()) { onSubmit(value.trim()); setValue('') }
+      if (value.trim()) {
+        onSubmit(value.trim())
+        setValue('')
+      }
     }
   }
 
   const handleSubmit = () => {
-    if (value.trim()) { onSubmit(value.trim()); setValue('') }
+    if (value.trim()) {
+      onSubmit(value.trim())
+      setValue('')
+    }
   }
 
   return (
     <div className="flex flex-col gap-3">
-      <label htmlFor="prompt-input" className="sr-only">Enter your prompt</label>
+      <label htmlFor="prompt-input" className="sr-only">
+        Enter your prompt
+      </label>
       <textarea
         ref={textareaRef}
         id="prompt-input"
@@ -39,8 +47,8 @@ export function TextInput({ onSubmit, disabled }: TextInputProps) {
           color: 'var(--text-h)',
           caretColor: 'var(--accent)',
         }}
-        onFocus={e => e.currentTarget.style.borderColor = 'var(--border-focus)'}
-        onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--border-focus)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
         aria-describedby="char-count"
       />
       <div className="flex items-center justify-between">
