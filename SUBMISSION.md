@@ -1,7 +1,7 @@
 # Sarvam AI — Frontend Intern Assignment Submission
 
 **Submitted by:** Ashutosh Kumar Tripathi
-**Date:** 17 May 2026
+**Date:** 19 May 2026
 
 ---
 
@@ -9,9 +9,9 @@
 
 | | |
 |---|---|
-| **GitHub Repository** | [https://github.com/YOUR_USERNAME/servam](https://github.com/YOUR_USERNAME/servam) |
-| **Live Demo (Vercel)** | [https://servam.vercel.app](https://servam.vercel.app) |
-| **3-Min Walkthrough Video** | [https://www.loom.com/share/YOUR_VIDEO_ID](https://www.loom.com/share/YOUR_VIDEO_ID) |
+| **GitHub Repository** | [https://github.com/AshutoshIIT1234/sarvam-assignment](https://github.com/AshutoshIIT1234/sarvam-assignment) |
+| **Live Demo (Vercel)** | [https://sarvam-assignment-zx9w.vercel.app](https://sarvam-assignment-zx9w.vercel.app) |
+| **3-Min Walkthrough Video** | [https://www.loom.com/share/36ad07fc82b64b9abc29e77cd914d7df](https://www.loom.com/share/36ad07fc82b64b9abc29e77cd914d7df) |
 
 ---
 
